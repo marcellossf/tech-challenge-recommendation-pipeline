@@ -1,0 +1,172 @@
+schema: '2.0'
+stages:
+  preprocess:
+    cmd: python -m recommender.data.preprocess
+    deps:
+    - path: data/raw/u.data
+      hash: md5
+      md5: 6e47046882bad158b0efbb84cd5cb987
+      size: 1979173
+    - path: src/recommender/data/preprocess.py
+      hash: md5
+      md5: 9fed97c55b776f285a3512f652748883
+      size: 2346
+    params:
+      params.yaml:
+        data.min_user_interactions: 5
+        data.positive_rating: 4
+    outs:
+    - path: data/interim/interactions.csv
+      hash: md5
+      md5: 8e11fd66472d1d791b6f042468f13669
+      size: 1464316
+    - path: reports/dataset_summary.json
+      hash: md5
+      md5: ed504a2087204557f2646ce154f338b8
+      size: 64
+  feature_eng:
+    cmd: python -m recommender.features.build
+    deps:
+    - path: data/interim/interactions.csv
+      hash: md5
+      md5: 8e11fd66472d1d791b6f042468f13669
+      size: 1464316
+    - path: src/recommender/features/build.py
+      hash: md5
+      md5: a633f5ce0519a2b27af9ca8be1729f01
+      size: 2121
+    params:
+      params.yaml:
+        data.test_items_per_user: 1
+        data.validation_items_per_user: 1
+    outs:
+    - path: data/processed/metadata.json
+      hash: md5
+      md5: cc70bf1b96284c87829e07e842fec6d3
+      size: 142
+    - path: data/processed/test.csv
+      hash: md5
+      md5: 69449255ae3a7d35d26ee7993d7553f7
+      size: 17658
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 87e4df8f2362fa9bb0d093b311b7cb1b
+      size: 1000788
+    - path: data/processed/validation.csv
+      hash: md5
+      md5: 2deec12428ece5959dac9b7a84af2426
+      size: 17651
+  train:
+    cmd: python -m recommender.training.train
+    deps:
+    - path: data/processed/metadata.json
+      hash: md5
+      md5: cc70bf1b96284c87829e07e842fec6d3
+      size: 142
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 87e4df8f2362fa9bb0d093b311b7cb1b
+      size: 1000788
+    - path: data/processed/validation.csv
+      hash: md5
+      md5: 2deec12428ece5959dac9b7a84af2426
+      size: 17651
+    - path: src/recommender/models
+      hash: md5
+      md5: ebe66fe7cc4c1de92d22eaa689708b3c.dir
+      size: 7812
+      nfiles: 6
+    - path: src/recommender/training
+      hash: md5
+      md5: 10ea07eeefa5ac39e96908bafc1a3adf.dir
+      size: 36761
+      nfiles: 12
+    params:
+      params.yaml:
+        experiments:
+          neural_runs:
+          - name: ncf-base
+            embedding_dim: 16
+            hidden_dims:
+            - 32
+            - 16
+            dropout: 0.1
+          - name: ncf-regularized
+            embedding_dim: 32
+            hidden_dims:
+            - 64
+            - 32
+            dropout: 0.2
+        model:
+          embedding_dim: 32
+          hidden_dims:
+          - 64
+          - 32
+          dropout: 0.2
+          negatives_per_positive: 2
+          learning_rate: 0.001
+          batch_size: 1024
+          epochs: 12
+          patience: 3
+          min_delta: 0.0001
+    outs:
+    - path: models/ncf-base.pt
+      hash: md5
+      md5: 06aeae8ad2e2e1d063ee4002393a13ae
+      size: 163035
+    - path: models/ncf-regularized.pt
+      hash: md5
+      md5: bdb8cfb8c627a4000d49f9bf73dbf6b8
+      size: 334461
+    - path: models/ncf_best.pt
+      hash: md5
+      md5: 06aeae8ad2e2e1d063ee4002393a13ae
+      size: 163035
+    - path: models/nmf.joblib
+      hash: md5
+      md5: 965f4bad8c1c7de7e892e86e08d73e18
+      size: 306003
+    - path: reports/training_summary.json
+      hash: md5
+      md5: 250963286fcb4eeecee65a5d984fed36
+      size: 92
+  evaluate:
+    cmd: python -m recommender.evaluation.evaluate
+    deps:
+    - path: data/processed/metadata.json
+      hash: md5
+      md5: cc70bf1b96284c87829e07e842fec6d3
+      size: 142
+    - path: data/processed/test.csv
+      hash: md5
+      md5: 69449255ae3a7d35d26ee7993d7553f7
+      size: 17658
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 87e4df8f2362fa9bb0d093b311b7cb1b
+      size: 1000788
+    - path: models/ncf_best.pt
+      hash: md5
+      md5: 06aeae8ad2e2e1d063ee4002393a13ae
+      size: 163035
+    - path: models/nmf.joblib
+      hash: md5
+      md5: 965f4bad8c1c7de7e892e86e08d73e18
+      size: 306003
+    - path: src/recommender/evaluation
+      hash: md5
+      md5: f59c5bb4dd123fd16750eb60a1196c62.dir
+      size: 19790
+      nfiles: 8
+    params:
+      params.yaml:
+        evaluation.top_k: 10
+    outs:
+    - path: reports/metrics.json
+      hash: md5
+      md5: 590bf5e3fd5df15969568f525d54654d
+      size: 476
+    - path: reports/model_comparison.md
+      hash: md5
+      md5: 1d3dd51bc96669d134dc570a8eeddbfe
+      size: 281

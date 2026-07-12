@@ -1,0 +1,62 @@
+stages:
+  preprocess:
+    cmd: python -m recommender.data.preprocess
+    deps:
+      - data/raw/u.data
+      - src/recommender/data/preprocess.py
+    params:
+      - data.positive_rating
+      - data.min_user_interactions
+    outs:
+      - data/interim/interactions.csv
+    metrics:
+      - reports/dataset_summary.json
+
+  feature_eng:
+    cmd: python -m recommender.features.build
+    deps:
+      - data/interim/interactions.csv
+      - src/recommender/features/build.py
+    params:
+      - data.test_items_per_user
+      - data.validation_items_per_user
+    outs:
+      - data/processed/train.csv
+      - data/processed/validation.csv
+      - data/processed/test.csv
+      - data/processed/metadata.json
+
+  train:
+    cmd: python -m recommender.training.train
+    deps:
+      - data/processed/train.csv
+      - data/processed/validation.csv
+      - data/processed/metadata.json
+      - src/recommender/models
+      - src/recommender/training
+    params:
+      - model
+      - experiments
+    outs:
+      - models/nmf.joblib
+      - models/ncf-base.pt
+      - models/ncf-regularized.pt
+      - models/ncf_best.pt
+    metrics:
+      - reports/training_summary.json
+
+  evaluate:
+    cmd: python -m recommender.evaluation.evaluate
+    deps:
+      - data/processed/train.csv
+      - data/processed/test.csv
+      - data/processed/metadata.json
+      - models/nmf.joblib
+      - models/ncf_best.pt
+      - src/recommender/evaluation
+    params:
+      - evaluation.top_k
+    metrics:
+      - reports/metrics.json
+    outs:
+      - reports/model_comparison.md

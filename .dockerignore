@@ -1,0 +1,15 @@
+.git
+.venv
+__pycache__
+.pytest_cache
+.ruff_cache
+tmp
+mlruns
+mlflow.db
+data
+models
+reports/figures
+*.pdf
+*.md
+!README.md
+

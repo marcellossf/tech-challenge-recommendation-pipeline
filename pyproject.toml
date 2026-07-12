@@ -1,0 +1,61 @@
+[build-system]
+requires = ["poetry-core>=2.0"]
+build-backend = "poetry.core.masonry.api"
+
+[project]
+name = "tech-challenge-recommender"
+version = "0.1.0"
+description = "Pipeline reprodutivel de recomendacao MovieLens com PyTorch, DVC, MLflow e Docker."
+authors = [{ name = "Marcello" }]
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+  "dvc>=3.60,<4.0",
+  "joblib>=1.4,<2.0",
+  "mlflow>=2.22,<3.0",
+  "numpy>=1.26,<3.0",
+  "pandas>=2.2,<3.0",
+  "pydantic-settings>=2.7,<3.0",
+  "pyyaml>=6.0,<7.0",
+  "scikit-learn>=1.5,<2.0",
+  "scipy>=1.13,<2.0",
+  "torch>=2.4,<3.0",
+]
+
+[project.scripts]
+download-data = "recommender.data.download:main"
+preprocess-data = "recommender.data.preprocess:main"
+build-features = "recommender.features.build:main"
+train-models = "recommender.training.train:main"
+evaluate-models = "recommender.evaluation.evaluate:main"
+promote-model = "recommender.registry.promote:main"
+validate-env = "recommender.config.validate:main"
+
+[tool.poetry]
+packages = [{ include = "recommender", from = "src" }]
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = ">=4.0,<5.0"
+pytest = ">=8.3,<9.0"
+pytest-cov = ">=6.0,<7.0"
+ruff = ">=0.12,<1.0"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-q --disable-warnings"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "S", "C4", "SIM"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101"]
+
+[tool.ruff.format]
+quote-style = "double"

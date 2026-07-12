@@ -1,0 +1,6 @@
+project_name: tech-challenge-recommender
+dataset_name: MovieLens 100K
+dataset_url: https://files.grouplens.org/datasets/movielens/ml-100k.zip
+random_seed: 42
+device: cpu
+
